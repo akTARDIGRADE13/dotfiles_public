@@ -1,0 +1,68 @@
+# =========================================
+# cpy <file>
+#
+# Copy the contents of a file to the clipboard.
+# - WSL: Windows clipboard
+# - Ubuntu Wayland: wl-copy
+# - Ubuntu X11: xclip or xsel
+# =========================================
+cpy() {
+    if [ $# -ne 1 ]; then
+        echo "Usage: cpy <file>" >&2
+        return 1
+    fi
+
+    local file="$1"
+
+    if [ ! -f "$file" ]; then
+        echo "Error: file not found: $file" >&2
+        return 1
+    fi
+
+    # WSL
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+        powershell.exe -NoProfile -Command \
+            "Set-Clipboard -Value ([IO.File]::ReadAllText('$(wslpath -w "$file")', [Text.Encoding]::UTF8))"
+        return $?
+    fi
+
+    # Native Ubuntu: Wayland
+    if command -v wl-copy >/dev/null 2>&1; then
+        wl-copy < "$file"
+        return $?
+    fi
+
+    # Native Ubuntu: X11
+    if command -v xclip >/dev/null 2>&1; then
+        xclip -selection clipboard < "$file"
+        return $?
+    fi
+
+    if command -v xsel >/dev/null 2>&1; then
+        xsel --clipboard --input < "$file"
+        return $?
+    fi
+
+    echo "Error: clipboard command not found." >&2
+    echo "Install one of: wl-clipboard, xclip, xsel" >&2
+    return 1
+}
+
+# =========================================
+# gpp [g++ args...]
+#
+# Compile C++ with a strong debug configuration.
+# =========================================
+gpp() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: gpp <files...> [g++ options]" >&2
+        echo "Example: gpp -o a.out main.cpp" >&2
+        return 1
+    fi
+
+    g++ -std=gnu++20 -O0 -g \
+        -fsanitize=address \
+        -Wall -Wextra -Wshadow \
+        -ftrapv \
+        "$@"
+}

@@ -1,0 +1,136 @@
+# プロファイルする際は次の行と末尾の行のコメントアウトを解除する
+# zmodload zsh/zprof
+
+# =========================================
+# Environment
+# =========================================
+export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+
+# cargo
+if [ -f "$HOME/.cargo/env" ]; then
+    . "$HOME/.cargo/env"
+fi
+
+# =========================================
+# nvm lazy load
+# =========================================
+export NVM_DIR="$HOME/.nvm"
+
+_load_nvm() {
+    unset -f nvm node npm npx corepack
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+}
+
+nvm() {
+    _load_nvm
+    nvm "$@"
+}
+
+node() {
+    _load_nvm
+    node "$@"
+}
+
+npm() {
+    _load_nvm
+    npm "$@"
+}
+
+npx() {
+    _load_nvm
+    npx "$@"
+}
+
+corepack() {
+    _load_nvm
+    corepack "$@"
+}
+
+# =========================================
+# History
+# =========================================
+HISTSIZE=50000
+SAVEHIST=100000
+HISTFILE="$HOME/.zsh_history"
+
+setopt HIST_IGNORE_DUPS
+setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY
+setopt SHARE_HISTORY
+
+# =========================================
+# Plugin manager: sheldon
+# =========================================
+if command -v sheldon >/dev/null 2>&1; then
+    eval "$(sheldon source)"
+fi
+
+# =========================================
+# Completion
+# =========================================
+
+# 補完候補を Tab でメニュー選択できるようにする
+zstyle ':completion:*' menu select
+
+# 大文字・小文字を区別せずに補完する
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+# 補完候補の説明を表示する
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
+
+# 補完候補をグループ化する
+zstyle ':completion:*' group-name ''
+
+# 補完候補に色を付ける
+if [ -n "$LS_COLORS" ]; then
+    zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+fi
+
+autoload -Uz compinit
+
+# 補完キャッシュ
+ZSH_COMPDUMP="${ZDOTDIR:-$HOME}/.zcompdump"
+
+# .zcompdump が存在する場合はキャッシュを使う
+# 存在しない場合だけ通常の compinit で作成する
+if [ -f "$ZSH_COMPDUMP" ]; then
+    compinit -C -d "$ZSH_COMPDUMP"
+else
+    compinit -d "$ZSH_COMPDUMP"
+fi
+
+# =========================================
+# Key bindings
+# =========================================
+bindkey -v
+KEYTIMEOUT=1
+
+# zsh-autosuggestions の候補を Ctrl-Space / 右矢印で確定する
+bindkey '^ ' autosuggest-accept
+bindkey '^[[C' autosuggest-accept
+
+# =========================================
+# User functions / aliases
+# =========================================
+if [ -f "$HOME/.zsh_functions" ]; then
+    source "$HOME/.zsh_functions"
+fi
+
+# =========================================
+# Prompt: starship
+# =========================================
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init zsh)"
+fi
+
+# =========================================
+# ls
+# =========================================
+alias ls='ls --indicator-style=slash --color=auto'
+alias ll='ls -lh --indicator-style=slash --color=auto'
+alias la='ls -A --indicator-style=slash --color=auto'
+alias lla='ls -lha --indicator-style=slash --color=auto'
+
+# zprof

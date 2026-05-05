@@ -1,0 +1,9 @@
+set noswapfile
+set tabstop=4
+set autoindent
+set shiftwidth=4
+set smartindent
+set number
+set mouse=a
+
+inoremap <silent> jj <ESC>
