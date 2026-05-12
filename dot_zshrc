@@ -107,6 +107,27 @@ fi
 bindkey -v
 KEYTIMEOUT=1
 
+# ↑ / ↓ で、現在入力している prefix に一致する履歴を検索する
+zmodload zsh/terminfo
+
+autoload -Uz up-line-or-beginning-search
+autoload -Uz down-line-or-beginning-search
+
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+
+if [[ -n "${terminfo[kcuu1]}" ]]; then
+    bindkey "${terminfo[kcuu1]}" up-line-or-beginning-search
+else
+    bindkey '^[[A' up-line-or-beginning-search
+fi
+
+if [[ -n "${terminfo[kcud1]}" ]]; then
+    bindkey "${terminfo[kcud1]}" down-line-or-beginning-search
+else
+    bindkey '^[[B' down-line-or-beginning-search
+fi
+
 # zsh-autosuggestions の候補を Ctrl-Space / 右矢印で確定する
 bindkey '^ ' autosuggest-accept
 bindkey '^[[C' autosuggest-accept
